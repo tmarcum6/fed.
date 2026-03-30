@@ -116,5 +116,8 @@ Tests use SQLite's `:memory:` mode — no files created, no cleanup needed.
 - [ ] Docker support
 - [ ] Tailwind CSS
 - [ ] RSS Lookup
+- [ ] Tracking for Read and Saved
+- [ ] Hot-Reload
+- [ ] Social
 
 ---

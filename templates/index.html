@@ -6,6 +6,13 @@
 {{ end }} {{ range .Articles }}
 <div class="article {{ if .Read }}read{{ end }}">
   <h3>
+    <img
+      src="{{ favicon .Link }}"
+      width="16"
+      height="16"
+      style="vertical-align: middle; margin-right: 0.4rem; border-radius: 3px"
+      onerror="this.style.display='none'"
+    />
     <a href="{{ .Link }}" target="_blank">{{ .Title }}</a>
     {{ if not .Read }}
     <form
