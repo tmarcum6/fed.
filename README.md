@@ -21,7 +21,7 @@
 ### Prerequisites
 
 - [Go 1.21+](https://go.dev/dl/)
-- GCC (required for SQLite via `go-sqlite3`) — or swap to [`modernc.org/sqlite`](https://pkg.go.dev/modernc.org/sqlite) for a pure Go alternative
+- GCC (required for SQLite via `go-sqlite3`)
 
 ### Install & Run
 
@@ -102,7 +102,7 @@ Tests use SQLite's `:memory:` mode — no files created, no cleanup needed.
 | Router | [chi](https://github.com/go-chi/chi) |
 | RSS Parsing | [gofeed](https://github.com/mmcdole/gofeed) |
 | Database | [SQLite](https://sqlite.org) via [go-sqlite3](https://github.com/mattn/go-sqlite3) |
-| Templates | Go `html/template` |
+| Templates | `html/template` |
 
 ---
 
