@@ -1,21 +1,10 @@
-# 📡 gRoSS
-
-> **Go RSS** — a self-hosted feed reader that doesn't get in your way.
-
-```
- ██████╗ ██████╗  ██████╗ ███████╗███████╗
-██╔════╝ ██╔══██╗██╔═══██╗██╔════╝██╔════╝
-██║  ███╗██████╔╝██║   ██║███████╗███████╗
-██║   ██║██╔══██╗██║   ██║╚════██║╚════██║
-╚██████╔╝██║  ██║╚██████╔╝███████║███████║
- ╚═════╝ ╚═╝  ╚═╝ ╚═════╝ ╚══════╝╚══════╝
-```
+# gRoSS
 
 **gRoSS** is a lightweight, self-hosted RSS feed reader built in Go. No Electron. No Node. No nonsense. Just a single binary, a SQLite database, and your feeds.
 
 ---
 
-## ✨ Features
+## Features
 
 - 📥 **Add any RSS or Atom feed** via URL
 - 🔄 **Auto-polling** — feeds refresh every 15 minutes in the background
@@ -27,7 +16,7 @@
 
 ---
 
-## 🚀 Getting Started
+## Getting Started
 
 ### Prerequisites
 
@@ -52,7 +41,7 @@ Then open [http://localhost:8080](http://localhost:8080) in your browser.
 
 ---
 
-## 🗂️ Project Structure
+## Project Structure
 
 ```
 go-rss/
@@ -76,7 +65,7 @@ go-rss/
 
 ---
 
-## 🛣️ Routes
+## Routes
 
 | Method | Path | Description |
 |--------|------|-------------|
@@ -88,7 +77,7 @@ go-rss/
 
 ---
 
-## 🧪 Testing
+## Testing
 
 ```bash
 # Run all tests
@@ -105,7 +94,7 @@ Tests use SQLite's `:memory:` mode — no files created, no cleanup needed.
 
 ---
 
-## 🧰 Tech Stack
+## Tech Stack
 
 | Layer | Tech |
 |-------|------|
@@ -117,7 +106,7 @@ Tests use SQLite's `:memory:` mode — no files created, no cleanup needed.
 
 ---
 
-## 🔮 Roadmap
+## Roadmap
 
 - [ ] OPML import / export
 - [ ] Feed categories / folders
@@ -126,26 +115,6 @@ Tests use SQLite's `:memory:` mode — no files created, no cleanup needed.
 - [ ] Dark / light theme toggle
 - [ ] Docker support
 - [ ] Tailwind CSS
+- [ ] RSS Lookup
 
 ---
-
-## 🤝 Contributing
-
-PRs welcome.
-
-```bash
-git checkout -b feature/your-feature
-git commit -m "add your feature"
-git push origin feature/your-feature
-# open a PR
-```
-
----
-
-## 📄 License
-
-MIT — do whatever you want with it.
-
----
-
-<p align="center">Built with Go & caffeine ☕</p>
