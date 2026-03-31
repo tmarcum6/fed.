@@ -16,6 +16,17 @@ func InsertFeed(url, title string) (int64, error) {
 	return res.LastInsertId()
 }
 
+func DeleteFeed(url string) (int64, error) {
+	res, err := DB.Exec(
+		`DELETE FROM feeds WHERE url = (?)`,
+		url,
+	)
+	if err != nil {
+		return 0, err
+	}
+	return res.RowsAffected()
+}
+
 func GetAllFeeds() ([]models.Feed, error) {
 	rows, err := DB.Query(`SELECT id, url, title, last_fetched FROM feeds`)
 	if err != nil {

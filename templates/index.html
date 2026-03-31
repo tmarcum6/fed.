@@ -1,6 +1,8 @@
 {{ define "content" }}
-<h1>{{ if .UnreadOnly }}Unread Articles{{ else }}All Articles{{ end }}</h1>
-
+<h1>
+  {{ if .UnreadOnly }}Unread Articles{{ else if .Hidden }}Hidden Articles{{ else
+  }}All Articles{{ end }}
+</h1>
 {{ if not .Articles }}
 <p style="color: #6c7086">No articles yet — add a feed to get started.</p>
 {{ end }} {{ range .Articles }}

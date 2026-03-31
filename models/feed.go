@@ -17,4 +17,5 @@ type Article struct {
 	Description string
 	Published   time.Time
 	Read        bool
+	Hidden      bool
 }

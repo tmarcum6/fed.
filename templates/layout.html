@@ -104,6 +104,14 @@
         border: none;
         margin-left: 0.5rem;
       }
+      .hide {
+        font-size: 0.75rem;
+        color: #a6e3a1;
+        cursor: pointer;
+        background: none;
+        border: none;
+        margin-left: 0.5rem;
+      }
     </style>
   </head>
   <body>
@@ -116,6 +124,7 @@
       <nav>
         <a href="/">All Articles</a>
         <a href="/?unread=true">Unread Only</a>
+        <a href="/?hidden=true">Hidden</a>
         <hr style="border-color: #313244; margin: 0.5rem 0" />
         {{ range .Feeds }}
         <a href="/feeds/{{ .ID }}">{{ .Title }}</a>

@@ -36,7 +36,7 @@ func TestPollFeed(t *testing.T) {
 		t.Fatalf("pollFeed failed: %v", err)
 	}
 
-	articles, _ := db.GetArticles("1", false)
+	articles, _ := db.GetArticles("1", false, false)
 	if len(articles) == 0 {
 		t.Fatal("expected articles to be saved after polling")
 	}

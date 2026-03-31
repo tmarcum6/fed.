@@ -119,5 +119,6 @@ Tests use SQLite's `:memory:` mode — no files created, no cleanup needed.
 - [ ] Tracking for Read and Saved
 - [ ] Hot-Reload
 - [ ] Social
+- [ ] Custom feeds
 
 ---

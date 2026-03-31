@@ -38,17 +38,27 @@ func MarkAsRead(articleID int) error {
 	return err
 }
 
-func GetArticles(feedID string, unreadOnly bool) ([]models.Article, error) {
+func MarkAsHidden(articleID int) error {
+	_, err := DB.Exec(`UPDATE articles SET hidden = 1 WHERE id = ?`, articleID)
+	return err
+}
+
+func GetArticles(feedID string, unreadOnly bool, hiddenOnly bool) ([]models.Article, error) {
 	query := `SELECT id, feed_id, title, link, description, published, read
               FROM articles WHERE 1=1`
 	args := []any{}
 
 	if feedID != "" {
 		query += " AND feed_id = ?"
+		query += " AND hidden = 0"
 		args = append(args, feedID)
 	}
 	if unreadOnly {
 		query += " AND read = 0"
+		query += " AND hidden = 0"
+	}
+	if hiddenOnly {
+		query += " AND hidden = 1"
 	}
 
 	query += " ORDER BY published DESC LIMIT 100"

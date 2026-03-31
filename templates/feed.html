@@ -20,6 +20,14 @@
     >
       <button class="mark-read">✓ mark read</button>
     </form>
+    {{ end }} {{ if not .Hidden}}
+    <form
+      method="POST"
+      action="/articles/{{ .ID }}/hidden"
+      style="display: inline"
+    >
+      <button class="hide">hide</button>
+    </form>
     {{ end }}
   </h3>
   <div class="meta">{{ .Published.Format "Jan 02, 2006 3:04 PM" }}</div>
