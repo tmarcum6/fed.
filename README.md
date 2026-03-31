@@ -6,13 +6,11 @@
 
 ## Features
 
-- 📥 **Add any RSS or Atom feed** via URL
-- 🔄 **Auto-polling** — feeds refresh every 15 minutes in the background
-- ✅ **Mark articles as read** — per article, right from the feed
-- 🗂️ **Per-feed views** — browse articles from a single source
-- 🔍 **Unread filter** — focus on what you haven't read yet
-- 🪶 **Zero dependencies to run** — single binary + SQLite file
-- 🖥️ **Server-rendered HTML** — works in any browser, no JS framework
+- **Add any RSS or Atom feed** via URL
+- **Auto-polling** — feeds refresh every 15 minutes in the background
+- **Filters** — focus on what you want
+- **Zero dependencies to run** — single binary + SQLite file
+- **Server-rendered HTML** — works in any browser, no JS framework
 
 ---
 
