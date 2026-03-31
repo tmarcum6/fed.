@@ -6,7 +6,7 @@
 
 ## Features
 
-- **Add any RSS or Atom feed** via URL
+- **Add any RSS or Atom feed** — via URL
 - **Auto-polling** — feeds refresh every 15 minutes in the background
 - **Filters** — focus on what you want
 - **Zero dependencies to run** — single binary + SQLite file
@@ -100,7 +100,7 @@ Tests use SQLite's `:memory:` mode — no files created, no cleanup needed.
 | Router | [chi](https://github.com/go-chi/chi) |
 | RSS Parsing | [gofeed](https://github.com/mmcdole/gofeed) |
 | Database | [SQLite](https://sqlite.org) via [go-sqlite3](https://github.com/mattn/go-sqlite3) |
-| Templates | `html/template` |
+| Templates | [html/template](https://pkg.go.dev/html/template) |
 
 ---
 
