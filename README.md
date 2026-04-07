@@ -1,16 +1,22 @@
-# gRoSS
+# fed.
 
-**gRoSS** is a lightweight, self-hosted RSS feed reader built in Go. No Electron. No Node. No nonsense. Just a single binary, a SQLite database, and your feeds.
+**fed.** is a lightweight, self-hosted RSS feed reader built in Go. No Electron. No Node. No nonsense. Just a single binary, a SQLite database, and your feeds.
 
 ---
 
 ## Features
 
 - **Add any RSS or Atom feed** — via URL
+- **Discover feeds** — auto-detect RSS/Atom feeds on any website
+- **Import feeds** — bulk import from CSV (one URL per line)
 - **Auto-polling** — feeds refresh every 15 minutes in the background
-- **Filters** — focus on what you want
+- **Filters** — view all, unread only, or hidden articles
+- **Per-feed filtering** — toggle unread filter on individual feeds
+- **Mark as read/unread** — track what you've seen
+- **Hide articles** — hide articles you don't want to see
+- **Manage feeds** — edit feed URLs, refresh manually, delete feeds
 - **Zero dependencies to run** — single binary + SQLite file
-- **Server-rendered HTML** — works in any browser, no JS framework
+- **Server-rendered HTML** — works in any browser
 
 ---
 
@@ -42,7 +48,7 @@ Then open [http://localhost:8080](http://localhost:8080) in your browser.
 ## Project Structure
 
 ```
-go-rss/
+fed/
 ├── main.go               # Entry point, router, handlers
 ├── go.mod
 ├── rss.db                # Auto-created SQLite database
@@ -50,15 +56,19 @@ go-rss/
 │   ├── db.go             # DB init & table creation
 │   ├── feeds.go          # Feed queries
 │   └── articles.go       # Article queries
+├── handlers/
+│   ├── discover.go        # RSS feed discovery on websites
+│   └── import.go         # CSV feed import
 ├── models/
 │   └── feed.go           # Feed & Article types
 ├── poller/
 │   └── poller.go         # Background feed polling
 └── templates/
-    ├── templates.go      # Template loader & renderer
+    ├── templates.go       # Template loader & renderer
     ├── layout.html       # Base layout with sidebar
     ├── index.html        # Homepage / all articles
-    └── feed.html         # Single feed view
+    ├── feed.html         # Single feed view
+    └── feeds.html        # Feed management page
 ```
 
 ---
@@ -69,9 +79,20 @@ go-rss/
 |--------|------|-------------|
 | `GET` | `/` | Homepage — all articles |
 | `GET` | `/?unread=true` | Unread articles only |
+| `GET` | `/?hidden=true` | Hidden articles |
 | `POST` | `/feeds` | Add a new feed |
+| `GET` | `/feeds` | Manage feeds page |
+| `POST` | `/feeds/import` | Import feeds from CSV |
+| `GET` | `/feeds/discover` | Discover feeds on a website |
 | `GET` | `/feeds/{id}` | View articles for a feed |
-| `POST` | `/articles/{id}/read` | Mark an article as read |
+| `GET` | `/feeds/{id}?unread=true` | View unread articles for a feed |
+| `POST` | `/feeds/{id}/refresh` | Manually refresh a feed |
+| `PUT` | `/feeds/{id}` | Update feed URL |
+| `DELETE` | `/feeds/{id}` | Delete a feed |
+| `POST` | `/articles/{id}/read` | Mark article as read |
+| `POST` | `/articles/{id}/unread` | Mark article as unread |
+| `POST` | `/articles/{id}/hidden` | Hide an article |
+| `POST` | `/articles/{id}/unhide` | Unhide an article |
 
 ---
 
@@ -101,6 +122,7 @@ Tests use SQLite's `:memory:` mode — no files created, no cleanup needed.
 | RSS Parsing | [gofeed](https://github.com/mmcdole/gofeed) |
 | Database | [SQLite](https://sqlite.org) via [go-sqlite3](https://github.com/mattn/go-sqlite3) |
 | Templates | [html/template](https://pkg.go.dev/html/template) |
+| CSS | [Tailwind CSS](https://tailwindcss.com) |
 
 ---
 
@@ -112,11 +134,7 @@ Tests use SQLite's `:memory:` mode — no files created, no cleanup needed.
 - [ ] Article preview pane
 - [ ] Dark / light theme toggle
 - [ ] Docker support
-- [ ] Tailwind CSS
-- [ ] RSS Lookup
 - [ ] Tracking for Read and Saved
-- [ ] Hot-Reload
 - [ ] Social
 - [ ] Custom feeds
-
----
+- [ ] Hot-reload
