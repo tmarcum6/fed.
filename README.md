@@ -31,8 +31,8 @@
 
 ```bash
 # Clone the repo
-git clone https://github.com/tmarcum6/gross.git
-cd gross
+git clone https://github.com/tmarcum6/fed..git
+cd fed./
 
 # Install dependencies
 go mod tidy
