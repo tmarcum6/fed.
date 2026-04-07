@@ -1,9 +1,9 @@
 package main
 
 import (
-	"github.com/go-chi/chi/v5"
-	"github.com/mmcdole/gofeed"
+	"encoding/json"
 	"gross/db"
+	"gross/handlers"
 	"gross/models"
 	"gross/poller"
 	"gross/templates"
@@ -11,6 +11,9 @@ import (
 	"net/http"
 	"strconv"
 	"time"
+
+	"github.com/go-chi/chi/v5"
+	"github.com/mmcdole/gofeed"
 )
 
 type PageData struct {
@@ -19,6 +22,16 @@ type PageData struct {
 	Feed       *models.Feed
 	UnreadOnly bool
 	Hidden     bool
+}
+
+type FeedStats struct {
+	models.Feed
+	Total  int
+	Unread int
+}
+
+type FeedsPageData struct {
+	Feeds []FeedStats
 }
 
 func indexHandler(w http.ResponseWriter, r *http.Request) {
@@ -37,8 +50,9 @@ func indexHandler(w http.ResponseWriter, r *http.Request) {
 
 func feedHandler(w http.ResponseWriter, r *http.Request) {
 	feedID := chi.URLParam(r, "id")
+	unreadOnly := r.URL.Query().Get("unread") == "true"
 	feeds, _ := db.GetAllFeeds()
-	articles, _ := db.GetArticles(feedID, false, false)
+	articles, _ := db.GetArticles(feedID, unreadOnly, false)
 
 	var current *models.Feed
 	for _, f := range feeds {
@@ -49,9 +63,27 @@ func feedHandler(w http.ResponseWriter, r *http.Request) {
 	}
 
 	templates.Render(w, "feed.html", PageData{
-		Feeds:    feeds,
-		Articles: articles,
-		Feed:     current,
+		Feeds:      feeds,
+		Articles:   articles,
+		Feed:       current,
+		UnreadOnly: unreadOnly,
+	})
+}
+
+func feedsHandler(w http.ResponseWriter, r *http.Request) {
+	feeds, _ := db.GetAllFeeds()
+	var feedsWithStats []FeedStats
+	for _, f := range feeds {
+		total, unread, _ := db.GetFeedStats(f.ID)
+		feedsWithStats = append(feedsWithStats, FeedStats{
+			Feed:   f,
+			Total:  total,
+			Unread: unread,
+		})
+	}
+
+	templates.Render(w, "feeds.html", FeedsPageData{
+		Feeds: feedsWithStats,
 	})
 }
 
@@ -76,7 +108,45 @@ func addFeedHandler(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	for _, item := range feed.Items {
+	if feedID > 0 {
+		for _, item := range feed.Items {
+			var published time.Time
+			if item.PublishedParsed != nil {
+				published = *item.PublishedParsed
+			} else {
+				published = time.Now()
+			}
+			db.InsertArticle(models.Article{
+				FeedID:      int(feedID),
+				Title:       item.Title,
+				Link:        item.Link,
+				Description: item.Description,
+				Published:   published,
+			})
+		}
+	}
+
+	http.Redirect(w, r, "/feeds", http.StatusSeeOther)
+}
+
+func refreshFeedHandler(w http.ResponseWriter, r *http.Request) {
+	id := chi.URLParam(r, "id")
+	feedID, _ := strconv.Atoi(id)
+
+	feed, err := db.GetFeedByID(feedID)
+	if err != nil {
+		http.Error(w, "feed not found", http.StatusNotFound)
+		return
+	}
+
+	fp := gofeed.NewParser()
+	fetchedFeed, err := fp.ParseURL(feed.URL)
+	if err != nil {
+		http.Error(w, "failed to fetch feed: "+err.Error(), http.StatusBadRequest)
+		return
+	}
+
+	for _, item := range fetchedFeed.Items {
 		var published time.Time
 		if item.PublishedParsed != nil {
 			published = *item.PublishedParsed
@@ -84,7 +154,7 @@ func addFeedHandler(w http.ResponseWriter, r *http.Request) {
 			published = time.Now()
 		}
 		db.InsertArticle(models.Article{
-			FeedID:      int(feedID),
+			FeedID:      feedID,
 			Title:       item.Title,
 			Link:        item.Link,
 			Description: item.Description,
@@ -92,16 +162,57 @@ func addFeedHandler(w http.ResponseWriter, r *http.Request) {
 		})
 	}
 
-	http.Redirect(w, r, "/", http.StatusSeeOther)
+	db.UpdateLastFetched(feedID)
+
+	http.Redirect(w, r, "/feeds", http.StatusSeeOther)
+}
+
+func updateFeedHandler(w http.ResponseWriter, r *http.Request) {
+	id := chi.URLParam(r, "id")
+	feedID, _ := strconv.Atoi(id)
+
+	var req struct {
+		URL   string `json:"url"`
+		Title string `json:"title"`
+	}
+
+	if err := json.NewDecoder(r.Body).Decode(&req); err != nil {
+		http.Error(w, "invalid request", http.StatusBadRequest)
+		return
+	}
+
+	if req.URL == "" {
+		http.Error(w, "url is required", http.StatusBadRequest)
+		return
+	}
+
+	if req.Title == "" {
+		fp := gofeed.NewParser()
+		feed, err := fp.ParseURL(req.URL)
+		if err != nil {
+			http.Error(w, "could not parse feed: "+err.Error(), http.StatusBadRequest)
+			return
+		}
+		req.Title = feed.Title
+	}
+
+	if err := db.UpdateFeedURL(feedID, req.URL, req.Title); err != nil {
+		http.Error(w, "failed to update feed", http.StatusInternalServerError)
+		return
+	}
+
+	w.WriteHeader(http.StatusOK)
 }
 
 func deleteFeedHandler(w http.ResponseWriter, r *http.Request) {
 	id := chi.URLParam(r, "id")
+	feedID, _ := strconv.Atoi(id)
 
-	if _, err := db.DeleteFeed(id); err != nil {
-		http.Error(w, "failed to mark as read", http.StatusInternalServerError)
-		return
-	}
+	log.Printf("DELETE feed ID: %d", feedID)
+
+	db.DeleteArticlesByFeed(feedID)
+	db.DeleteFeedByID(feedID)
+
 	w.WriteHeader(http.StatusNoContent)
 }
 
@@ -127,6 +238,28 @@ func markHiddenHandler(w http.ResponseWriter, r *http.Request) {
 	w.WriteHeader(http.StatusNoContent)
 }
 
+func unhideArticleHandler(w http.ResponseWriter, r *http.Request) {
+	id := chi.URLParam(r, "id")
+	articleID, _ := strconv.Atoi(id)
+
+	if err := db.UnhideArticle(articleID); err != nil {
+		http.Error(w, "failed to unhide article", http.StatusInternalServerError)
+		return
+	}
+	w.WriteHeader(http.StatusNoContent)
+}
+
+func markUnreadHandler(w http.ResponseWriter, r *http.Request) {
+	id := chi.URLParam(r, "id")
+	articleID, _ := strconv.Atoi(id)
+
+	if err := db.MarkAsUnread(articleID); err != nil {
+		http.Error(w, "failed to mark as unread", http.StatusInternalServerError)
+		return
+	}
+	w.WriteHeader(http.StatusNoContent)
+}
+
 func main() {
 	db.Init("./rss.db")
 	templates.Load()
@@ -134,10 +267,18 @@ func main() {
 
 	r := chi.NewRouter()
 	r.Get("/", indexHandler)
+	r.Get("/feeds", feedsHandler)
 	r.Post("/feeds", addFeedHandler)
+	r.Post("/feeds/import", handlers.ImportFeedsCSVHandler)
+	r.Get("/feeds/discover", handlers.DiscoverFeedsHandler)
+	r.Post("/feeds/from-discovery", handlers.AddFeedFromDiscoveryHandler)
+	r.Post("/feeds/{id}/refresh", refreshFeedHandler)
+	r.Put("/feeds/{id}", updateFeedHandler)
 	r.Get("/feeds/{id}", feedHandler)
 	r.Post("/articles/{id}/read", markReadHandler)
+	r.Post("/articles/{id}/unread", markUnreadHandler)
 	r.Post("/articles/{id}/hidden", markHiddenHandler)
+	r.Post("/articles/{id}/unhide", unhideArticleHandler)
 	r.Delete("/feeds/{id}", deleteFeedHandler)
 
 	log.Println("Listening on :8080")

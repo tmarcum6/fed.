@@ -50,3 +50,57 @@ func UpdateLastFetched(feedID int) error {
 	)
 	return err
 }
+
+func DeleteFeedByID(id int) error {
+	_, err := DB.Exec(`DELETE FROM feeds WHERE id = ?`, id)
+	return err
+}
+
+func UpdateFeedURL(id int, url, title string) error {
+	_, err := DB.Exec(
+		`UPDATE feeds SET url = ?, title = ? WHERE id = ?`,
+		url, title, id,
+	)
+	return err
+}
+
+func GetFeedStats(feedID int) (total int, unread int, err error) {
+	var e error
+	row := DB.QueryRow(`SELECT COUNT(*) FROM articles WHERE feed_id = ?`, feedID)
+	if e = row.Scan(&total); e != nil {
+		return 0, 0, e
+	}
+	row = DB.QueryRow(`SELECT COUNT(*) FROM articles WHERE feed_id = ? AND read = 0 AND hidden = 0`, feedID)
+	if e = row.Scan(&unread); e != nil {
+		return 0, 0, e
+	}
+	return total, unread, nil
+}
+
+func GetFeedByID(id int) (*models.Feed, error) {
+	var f models.Feed
+	err := DB.QueryRow(`SELECT id, url, title, last_fetched FROM feeds WHERE id = ?`, id).
+		Scan(&f.ID, &f.URL, &f.Title, &f.LastFetched)
+	if err != nil {
+		return nil, err
+	}
+	return &f, nil
+}
+
+func GetAllFeedURLs() ([]string, error) {
+	rows, err := DB.Query(`SELECT url FROM feeds`)
+	if err != nil {
+		return nil, err
+	}
+	defer rows.Close()
+
+	var urls []string
+	for rows.Next() {
+		var url string
+		if err := rows.Scan(&url); err != nil {
+			return nil, err
+		}
+		urls = append(urls, url)
+	}
+	return urls, nil
+}

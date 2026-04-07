@@ -3,7 +3,9 @@
   <head>
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <title>RSS Reader</title>
+    <title>fed.</title>
+    <link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><text y='.9em' font-size='90'>🍜</text></svg>">
+    <script src="https://cdn.tailwindcss.com"></script>
     <style>
       * {
         box-sizing: border-box;
@@ -16,60 +18,15 @@
         height: 100vh;
       }
 
-      #sidebar {
-        width: 260px;
-        background: #1e1e2e;
-        color: #cdd6f4;
-        padding: 1rem;
-        overflow-y: auto;
-        flex-shrink: 0;
-      }
-      #sidebar h2 {
-        font-size: 1rem;
-        margin-bottom: 1rem;
-        color: #89b4fa;
-      }
-      #sidebar a {
+      .sidebar-link {
         display: block;
         padding: 0.4rem 0.5rem;
         color: #cdd6f4;
         text-decoration: none;
         border-radius: 4px;
       }
-      #sidebar a:hover {
+      .sidebar-link:hover {
         background: #313244;
-      }
-      #sidebar form {
-        display: flex;
-        gap: 0.5rem;
-        margin-bottom: 1rem;
-      }
-      #sidebar input {
-        flex: 1;
-        padding: 0.4rem;
-        border-radius: 4px;
-        border: none;
-        font-size: 0.85rem;
-      }
-      #sidebar button {
-        padding: 0.4rem 0.6rem;
-        background: #89b4fa;
-        border: none;
-        border-radius: 4px;
-        cursor: pointer;
-      }
-
-      #main {
-        flex: 1;
-        padding: 2rem;
-        overflow-y: auto;
-        background: #181825;
-        color: #cdd6f4;
-      }
-      #main h1 {
-        font-size: 1.4rem;
-        margin-bottom: 1.5rem;
-        color: #cba6f7;
       }
 
       .article {
@@ -96,42 +53,254 @@
       .article.read h3 a {
         color: #6c7086;
       }
-      .mark-read {
-        font-size: 0.75rem;
-        color: #a6e3a1;
-        cursor: pointer;
-        background: none;
-        border: none;
-        margin-left: 0.5rem;
+      .feed-card {
+        background: #1e1e2e;
+        border-radius: 0.5rem;
+        padding: 1rem;
+        margin-bottom: 0.75rem;
       }
-      .hide {
-        font-size: 0.75rem;
-        color: #a6e3a1;
+      .feed-card:hover {
+        background: #262637;
+      }
+      .action-form {
+        display: inline;
+        margin: 0;
+        padding: 0;
+        background: none;
+        border: none;
+      }
+      .action-btn {
+        font-size: 1.1rem;
+        line-height: 1;
         cursor: pointer;
         background: none;
         border: none;
-        margin-left: 0.5rem;
+        padding: 0.25rem 0.35rem;
+        color: inherit;
+      }
+      .action-btn:hover {
+        text-decoration: underline;
+      }
+      .discovery-item {
+        background: #313244;
+        border-radius: 4px;
+        padding: 0.75rem;
+        margin-bottom: 0.5rem;
+        cursor: pointer;
+      }
+      .discovery-item:hover {
+        background: #45475a;
+      }
+      .discovery-item.selected {
+        background: #89b4fa;
+        color: #1e1e2e;
+      }
+      .discovery-item input[type="radio"] {
+        margin-right: 0.5rem;
       }
     </style>
   </head>
   <body>
-    <div id="sidebar">
-      <h2>📡 Feeds</h2>
-      <form method="POST" action="/feeds">
-        <input type="text" name="url" placeholder="Feed URL..." required />
-        <button type="submit">+</button>
+    <div id="sidebar" class="w-64 bg-[#1e1e2e] text-[#cdd6f4] p-4 overflow-y-auto flex-shrink-0 flex flex-col">
+      <h2 class="text-sm mb-4 text-[#89b4fa]">🍜 fed.</h2>
+      <form method="POST" action="/feeds" class="flex gap-2 mb-2">
+        <input type="text" name="url" placeholder="Feed URL..." required class="flex-1 p-2 rounded text-sm bg-[#181825] border-none" />
+        <button type="submit" class="px-3 py-2 bg-[#89b4fa] rounded border-none cursor-pointer">+</button>
       </form>
-      <nav>
-        <a href="/">All Articles</a>
-        <a href="/?unread=true">Unread Only</a>
-        <a href="/?hidden=true">Hidden</a>
-        <hr style="border-color: #313244; margin: 0.5rem 0" />
+      <button type="button" onclick="openDiscoverModal()" class="w-full text-left px-2 py-1 text-sm text-[#a6adc8] hover:text-[#cdd6f4] hover:bg-[#313244] rounded mb-4">
+        🔍 Discover feeds on a website
+      </button>
+      <nav class="flex-1">
+        <a href="/" class="sidebar-link">All Articles</a>
+        <a href="/?unread=true" class="sidebar-link">Unread Only</a>
+        <a href="/?hidden=true" class="sidebar-link">Hidden</a>
+        <a href="/feeds" class="sidebar-link">Manage Feeds</a>
+        <hr class="border-[#313244] my-2" />
         {{ range .Feeds }}
-        <a href="/feeds/{{ .ID }}">{{ .Title }}</a>
+        <a href="/feeds/{{ .ID }}" class="sidebar-link">{{ .Title }}</a>
         {{ end }}
       </nav>
     </div>
 
-    <div id="main">{{ block "content" . }}{{ end }}</div>
+    <div id="main" class="flex-1 p-8 overflow-y-auto bg-[#181825] text-[#cdd6f4]">{{ block "content" . }}{{ end }}</div>
+
+    <div id="discover-modal" class="fixed inset-0 bg-black/50 hidden items-center justify-center z-50">
+      <div class="bg-[#1e1e2e] rounded-lg p-6 w-full max-w-lg mx-4 max-h-[80vh] flex flex-col">
+        <h2 class="text-lg text-[#cba6f7] mb-4">Discover RSS Feeds</h2>
+        <div class="flex gap-2 mb-4">
+          <input type="url" id="discover-url" placeholder="https://example.com" required class="flex-1 p-2 rounded bg-[#181825] border border-[#313244] text-[#cdd6f4]" />
+          <button type="button" onclick="searchFeeds()" class="px-4 py-2 bg-[#89b4fa] text-[#1e1e2e] rounded hover:bg-[#89b4fa/80]">Search</button>
+        </div>
+        <div id="discover-results" class="flex-1 overflow-y-auto mb-4">
+          <p class="text-[#6c7086] text-sm">Enter a website URL to discover available RSS/Atom feeds.</p>
+        </div>
+        <div class="flex justify-end gap-2">
+          <button type="button" onclick="closeDiscoverModal()" class="px-4 py-2 bg-[#313244] text-[#cdd6f4] rounded hover:bg-[#45475a]">Close</button>
+          <button type="button" onclick="addSelectedFeed()" class="px-4 py-2 bg-[#a6e3a1] text-[#1e1e2e] rounded hover:bg-[#a6e3a1/80]">Add Selected</button>
+        </div>
+      </div>
+    </div>
+
+    <div id="edit-modal" class="fixed inset-0 bg-black/50 hidden items-center justify-center z-50">
+      <div class="bg-[#1e1e2e] rounded-lg p-6 w-full max-w-md mx-4">
+        <h2 class="text-lg text-[#cba6f7] mb-4">Edit Feed</h2>
+        <form id="edit-form" onsubmit="submitEdit(event)">
+          <div class="mb-4">
+            <label class="block text-[#6c7086] text-sm mb-1">Title</label>
+            <input type="text" id="edit-title" class="w-full p-2 rounded bg-[#181825] border border-[#313244] text-[#cdd6f4]" />
+          </div>
+          <div class="mb-4">
+            <label class="block text-[#6c7086] text-sm mb-1">URL</label>
+            <input type="url" id="edit-url" required class="w-full p-2 rounded bg-[#181825] border border-[#313244] text-[#cdd6f4]" />
+          </div>
+          <div class="flex justify-end gap-2">
+            <button type="button" onclick="closeEditModal()" class="px-4 py-2 bg-[#313244] text-[#cdd6f4] rounded hover:bg-[#45475a]">Cancel</button>
+            <button type="submit" class="px-4 py-2 bg-[#a6e3a1] text-[#1e1e2e] rounded hover:bg-[#a6e3a1/80]">Save</button>
+          </div>
+        </form>
+      </div>
+    </div>
+
+    <script>
+    let currentEditId = null;
+    let discoveredFeeds = [];
+
+    function openDiscoverModal() {
+      document.getElementById('discover-modal').classList.remove('hidden');
+      document.getElementById('discover-modal').classList.add('flex');
+      document.getElementById('discover-url').focus();
+    }
+
+    function closeDiscoverModal() {
+      document.getElementById('discover-modal').classList.add('hidden');
+      document.getElementById('discover-modal').classList.remove('flex');
+      document.getElementById('discover-results').innerHTML = '<p class="text-[#6c7086] text-sm">Enter a website URL to discover available RSS/Atom feeds.</p>';
+      document.getElementById('discover-url').value = '';
+      discoveredFeeds = [];
+    }
+
+    async function searchFeeds() {
+      const url = document.getElementById('discover-url').value;
+      if (!url) return;
+      
+      const resultsDiv = document.getElementById('discover-results');
+      resultsDiv.innerHTML = '<p class="text-[#6c7086] text-sm">Searching...</p>';
+      
+      try {
+        const response = await fetch(`/feeds/discover?url=${encodeURIComponent(url)}`);
+        const feeds = await response.json();
+        
+        discoveredFeeds = feeds;
+        
+        if (feeds.length === 0) {
+          resultsDiv.innerHTML = '<p class="text-[#6c7086] text-sm">No feeds found on this website.</p>';
+          return;
+        }
+        
+        resultsDiv.innerHTML = feeds.map((feed, i) => `
+          <div class="discovery-item" onclick="selectFeed(${i})">
+            <label class="flex items-center cursor-pointer">
+              <input type="radio" name="feed" value="${i}" class="feed-radio" />
+              <div>
+                <div class="font-medium">${escapeHtml(feed.title)}</div>
+                <div class="text-xs text-[#6c7086] truncate">${escapeHtml(feed.url)}</div>
+              </div>
+            </label>
+          </div>
+        `).join('');
+      } catch (err) {
+        resultsDiv.innerHTML = `<p class="text-[#f38ba8] text-sm">Error: ${err.message}</p>`;
+      }
+    }
+
+    function selectFeed(index) {
+      document.querySelectorAll('.discovery-item').forEach((el, i) => {
+        el.classList.toggle('selected', i === index);
+      });
+      document.querySelectorAll('.feed-radio').forEach((el, i) => {
+        el.checked = i === index;
+      });
+    }
+
+    async function addSelectedFeed() {
+      const selected = document.querySelector('.feed-radio:checked');
+      if (!selected) {
+        alert('Please select a feed to add');
+        return;
+      }
+      
+      const feed = discoveredFeeds[parseInt(selected.value)];
+      
+      try {
+        const response = await fetch('/feeds', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
+          body: `url=${encodeURIComponent(feed.url)}`
+        });
+        
+        if (response.redirected) {
+          window.location.href = response.url;
+        } else {
+          window.location.reload();
+        }
+      } catch (err) {
+        alert('Error adding feed: ' + err.message);
+      }
+    }
+
+    function escapeHtml(text) {
+      const div = document.createElement('div');
+      div.textContent = text;
+      return div.innerHTML;
+    }
+
+    function openEditModal(id, url, title) {
+      currentEditId = id;
+      document.getElementById('edit-title').value = title;
+      document.getElementById('edit-url').value = url;
+      document.getElementById('edit-modal').classList.remove('hidden');
+      document.getElementById('edit-modal').classList.add('flex');
+      document.getElementById('edit-url').focus();
+    }
+
+    function closeEditModal() {
+      document.getElementById('edit-modal').classList.add('hidden');
+      document.getElementById('edit-modal').classList.remove('flex');
+      currentEditId = null;
+    }
+
+    async function submitEdit(e) {
+      e.preventDefault();
+      if (!currentEditId) return;
+      
+      const url = document.getElementById('edit-url').value;
+      const title = document.getElementById('edit-title').value;
+      
+      try {
+        const response = await fetch(`/feeds/${currentEditId}`, {
+          method: 'PUT',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ url, title })
+        });
+        
+        if (response.ok) {
+          closeEditModal();
+          window.location.reload();
+        } else {
+          const error = await response.text();
+          alert('Failed to update feed: ' + error);
+        }
+      } catch (err) {
+        alert('Error: ' + err.message);
+      }
+    }
+
+    document.addEventListener('keydown', (e) => {
+      if (e.key === 'Escape') {
+        closeEditModal();
+        closeDiscoverModal();
+      }
+    });
+    </script>
   </body>
 </html>

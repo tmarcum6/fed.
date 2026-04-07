@@ -1,32 +1,56 @@
 {{ define "content" }}
-<h1>
-  {{ if .UnreadOnly }}Unread Articles{{ else if .Hidden }}Hidden Articles{{ else
-  }}All Articles{{ end }}
+<h1 class="text-xl mb-6 text-[#cba6f7]">
+  {{ if .UnreadOnly }}Unread Articles{{ else if .Hidden }}Hidden Articles{{ else }}All Articles{{ end }}
 </h1>
 {{ if not .Articles }}
-<p style="color: #6c7086">No articles yet — add a feed to get started.</p>
-{{ end }} {{ range .Articles }}
-<div class="article {{ if .Read }}read{{ end }}">
-  <h3>
+<p class="text-[#6c7086]">No articles yet — add a feed to get started.</p>
+{{ end }}
+{{ range .Articles }}
+<div class="article {{ if .Read }}read{{ end }}" id="article-{{ .ID }}">
+  <h3 class="flex items-center gap-2 flex-wrap">
     <img
       src="{{ favicon .Link }}"
       width="16"
       height="16"
-      style="vertical-align: middle; margin-right: 0.4rem; border-radius: 3px"
+      class="rounded"
       onerror="this.style.display='none'"
     />
-    <a href="{{ .Link }}" target="_blank">{{ .Title }}</a>
-    {{ if not .Read }}
-    <form
-      method="POST"
-      action="/articles/{{ .ID }}/read"
-      style="display: inline"
-    >
-      <button class="mark-read">✓ mark read</button>
-    </form>
+    <a href="{{ .Link }}" target="_blank" class="text-[#89dceb]">{{ .Title }}</a>
+    {{ if .Hidden }}
+    <button type="button" onclick="unhideArticle({{ .ID }})" class="action-btn text-[#fab387]">&#x21BA; unhide</button>
+    {{ else if .Read }}
+    <button type="button" onclick="markAsUnread({{ .ID }})" class="action-btn text-[#6c7086]">&#x21BA; unread</button>
+    {{ else }}
+    <button type="button" onclick="markAsRead({{ .ID }})" class="action-btn text-[#a6e3a1]">&#x2713; read</button>
+    <button type="button" onclick="hideArticle({{ .ID }})" class="action-btn text-[#f9e2af]">hide</button>
     {{ end }}
   </h3>
   <div class="meta">{{ .Published.Format "Jan 02, 2006 3:04 PM" }}</div>
+  {{ if and .Description (not (hasCommentsOnly .Description)) }}
   <p>{{ .Description }}</p>
+  {{ end }}
 </div>
-{{ end }} {{ end }}
+{{ end }}
+
+<script>
+async function markAsRead(id) {
+  await fetch(`/articles/${id}/read`, { method: 'POST' });
+  window.location.reload();
+}
+
+async function markAsUnread(id) {
+  await fetch(`/articles/${id}/unread`, { method: 'POST' });
+  window.location.reload();
+}
+
+async function hideArticle(id) {
+  await fetch(`/articles/${id}/hidden`, { method: 'POST' });
+  window.location.reload();
+}
+
+async function unhideArticle(id) {
+  await fetch(`/articles/${id}/unhide`, { method: 'POST' });
+  window.location.reload();
+}
+</script>
+{{ end }}

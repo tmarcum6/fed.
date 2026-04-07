@@ -4,6 +4,7 @@ import (
 	"html/template"
 	"net/http"
 	"net/url"
+	"strings"
 )
 
 var tmpl *template.Template
@@ -16,6 +17,10 @@ func Load() {
 				return ""
 			}
 			return "https://www.google.com/s2/favicons?domain=" + u.Hostname() + "&sz=32"
+		},
+		"hasCommentsOnly": func(desc string) bool {
+			desc = strings.TrimSpace(desc)
+			return strings.Contains(desc, "<a href=") && strings.Contains(desc, "Comments</a>") && len(desc) < 200
 		},
 	}
 
@@ -34,6 +39,10 @@ func Render(w http.ResponseWriter, name string, data any) {
 				return ""
 			}
 			return "https://www.google.com/s2/favicons?domain=" + u.Hostname() + "&sz=32"
+		},
+		"hasCommentsOnly": func(desc string) bool {
+			desc = strings.TrimSpace(desc)
+			return strings.Contains(desc, "<a href=") && strings.Contains(desc, "Comments</a>") && len(desc) < 200
 		},
 	}).ParseFiles("templates/layout.html", "templates/"+name)
 	if err != nil {

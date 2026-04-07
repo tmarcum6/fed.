@@ -1,0 +1,153 @@
+{{ define "content" }}
+<div class="flex items-center justify-between mb-6">
+  <h1 class="text-xl text-[#cba6f7]">Manage Feeds</h1>
+  <div class="flex items-center gap-4">
+    <span class="text-sm text-[#6c7086]">{{ len .Feeds }} feeds</span>
+    <button type="button" onclick="openImportModal()" class="px-3 py-1 bg-[#89b4fa] text-[#1e1e2e] rounded text-sm hover:bg-[#89b4fa/80]">
+      Import CSV
+    </button>
+  </div>
+</div>
+
+{{ if not .Feeds }}
+<p class="text-[#6c7086]">No feeds yet — add one from the sidebar or discover feeds on a website.</p>
+{{ end }}
+
+{{ range .Feeds }}
+<div class="feed-card" id="feed-{{ .ID }}">
+  <div class="flex items-start justify-between">
+    <div class="flex-1 min-w-0">
+      <div class="flex items-center gap-2">
+        <h3 class="text-[#cdd6f4] font-medium">{{ .Title }}</h3>
+        <a href="/feeds/{{ .ID }}" class="text-[#89b4fa] text-sm hover:underline">view</a>
+      </div>
+      <p class="text-[#6c7086] text-sm truncate mt-1" title="{{ .URL }}">{{ .URL }}</p>
+      <div class="flex items-center gap-4 mt-2 text-xs text-[#6c7086]">
+        <span>{{ .Total }} articles</span>
+        <span>{{ .Unread }} unread</span>
+        {{ if .LastFetched }}
+        <span>fetched {{ .LastFetched.Format "Jan 02 3:04 PM" }}</span>
+        {{ end }}
+      </div>
+    </div>
+    <div class="flex items-center gap-1 ml-4">
+      <form method="POST" action="/feeds/{{ .ID }}/refresh" class="action-form">
+        <button type="submit" class="action-btn text-[#89b4fa]" title="Refresh">&#x21bb;</button>
+      </form>
+      <button type="button" onclick="openEditModal({{ .ID }}, '{{ .URL }}', '{{ .Title }}')" class="action-btn text-[#fab387]" title="Edit">&#x270E;</button>
+      <button type="button" onclick="deleteFeed({{ .ID }})" class="action-btn text-[#f38ba8]" title="Delete">&#x1F5D1;</button>
+    </div>
+  </div>
+</div>
+{{ end }}
+
+<div id="import-modal" class="fixed inset-0 bg-black/50 hidden items-center justify-center z-50">
+  <div class="bg-[#1e1e2e] rounded-lg p-6 w-full max-w-lg mx-4">
+    <h2 class="text-lg text-[#cba6f7] mb-4">Import RSS Feeds</h2>
+    <p class="text-[#6c7086] text-sm mb-4">Upload a CSV file with one feed URL per line. Maximum 100 feeds per import.</p>
+    <form id="import-form" onsubmit="submitImport(event)">
+      <div class="mb-4">
+        <input type="file" id="import-file" accept=".csv,.txt" required class="w-full p-2 rounded bg-[#181825] border border-[#313244] text-[#cdd6f4] file:text-sm file:text-[#cdd6f4]" />
+      </div>
+      <div id="import-status" class="hidden mb-4 p-3 rounded text-sm"></div>
+      <div class="flex justify-end gap-2">
+        <button type="button" onclick="closeImportModal()" class="px-4 py-2 bg-[#313244] text-[#cdd6f4] rounded hover:bg-[#45475a]">Cancel</button>
+        <button type="submit" id="import-submit" class="px-4 py-2 bg-[#a6e3a1] text-[#1e1e2e] rounded hover:bg-[#a6e3a1/80]">Import</button>
+      </div>
+    </form>
+  </div>
+</div>
+
+<script>
+function openImportModal() {
+  document.getElementById('import-modal').classList.remove('hidden');
+  document.getElementById('import-modal').classList.add('flex');
+  document.getElementById('import-status').classList.add('hidden');
+  document.getElementById('import-file').value = '';
+}
+
+function closeImportModal() {
+  document.getElementById('import-modal').classList.add('hidden');
+  document.getElementById('import-modal').classList.remove('flex');
+}
+
+async function submitImport(e) {
+  e.preventDefault();
+  
+  const fileInput = document.getElementById('import-file');
+  const statusDiv = document.getElementById('import-status');
+  const submitBtn = document.getElementById('import-submit');
+  
+  if (!fileInput.files[0]) {
+    return;
+  }
+  
+  const formData = new FormData();
+  formData.append('file', fileInput.files[0]);
+  
+  submitBtn.disabled = true;
+  submitBtn.textContent = 'Importing...';
+  statusDiv.classList.remove('hidden');
+  statusDiv.className = 'mb-4 p-3 rounded text-sm bg-[#313244] text-[#cdd6f4]';
+  statusDiv.textContent = 'Importing feeds...';
+  
+  try {
+    const response = await fetch('/feeds/import', {
+      method: 'POST',
+      body: formData
+    });
+    
+    const result = await response.json();
+    
+    if (result.errors && result.errors.length > 0) {
+      statusDiv.className = 'mb-4 p-3 rounded text-sm bg-[#f38ba8]/20 text-[#f38ba8]';
+      statusDiv.innerHTML = `<strong>Import complete:</strong><br>` +
+        `Added: ${result.added}<br>` +
+        `Skipped (duplicates): ${result.skipped}<br>` +
+        `Errors: ${result.errors.join(', ')}`;
+    } else {
+      statusDiv.className = 'mb-4 p-3 rounded text-sm bg-[#a6e3a1]/20 text-[#a6e3a1]';
+      statusDiv.innerHTML = `<strong>Import complete!</strong><br>` +
+        `Added: ${result.added}<br>` +
+        `Skipped (duplicates): ${result.skipped}`;
+    }
+    
+    setTimeout(() => {
+      closeImportModal();
+      window.location.reload();
+    }, 1500);
+    
+  } catch (err) {
+    statusDiv.className = 'mb-4 p-3 rounded text-sm bg-[#f38ba8]/20 text-[#f38ba8]';
+    statusDiv.textContent = 'Error: ' + err.message;
+  }
+  
+  submitBtn.disabled = false;
+  submitBtn.textContent = 'Import';
+}
+
+document.addEventListener('keydown', (e) => {
+  if (e.key === 'Escape') closeImportModal();
+});
+
+async function deleteFeed(id) {
+  if (!confirm('Delete this feed and all its articles?')) {
+    return;
+  }
+  
+  try {
+    const response = await fetch(`/feeds/${id}`, {
+      method: 'DELETE'
+    });
+    
+    if (response.ok) {
+      window.location.reload();
+    } else {
+      alert('Failed to delete feed');
+    }
+  } catch (err) {
+    alert('Error: ' + err.message);
+  }
+}
+</script>
+{{ end }}
