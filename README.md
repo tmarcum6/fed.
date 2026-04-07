@@ -136,9 +136,6 @@ Tests use SQLite's `:memory:` mode — no files created, no cleanup needed.
 - [ ] Feed categories / folders
 - [ ] Full-text search
 - [ ] Article preview pane
-- [ ] Dark / light theme toggle
 - [ ] Docker support
-- [ ] Tracking for Read and Saved
 - [ ] Social
 - [ ] Custom feeds
-- [ ] Hot-reload
