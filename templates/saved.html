@@ -1,11 +1,11 @@
 {{ define "content" }}
 <div class="flex items-center justify-between mb-6">
-  <h1 class="text-xl text-[var(--accent)]">{{ .Feed.Title }}</h1>
-  <a href="/feeds/{{ .Feed.ID }}{{ if not .UnreadOnly }}?unread=true{{ end }}" class="text-[var(--accent)] text-sm hover:underline">
-    {{ if .UnreadOnly }}Show all{{ else }}Show unread only{{ end }}
-  </a>
+  <h1 class="text-xl text-[var(--accent)]">Saved Articles</h1>
 </div>
 
+{{ if not .Articles }}
+<p class="text-[var(--text-muted)]">No saved articles yet — star articles to save them here.</p>
+{{ end }}
 {{ range .Articles }}
 <div class="article {{ if .Read }}read{{ end }}" id="article-{{ .ID }}">
   <h3 class="flex items-center gap-2 flex-wrap">
@@ -22,8 +22,8 @@
     <button type="button" onclick="markAsUnread({{ .ID }})" class="action-btn text-[var(--text-muted)]">&#x21BA; unread</button>
     {{ else }}
     <button type="button" onclick="markAsRead({{ .ID }})" class="action-btn text-[var(--foam)]">&#x2713; read</button>
-    <button type="button" onclick="hideArticle({{ .ID }})" class="action-btn text-[var(--gold)]">hide</button>
     {{ end }}
+    <button type="button" onclick="hideArticle({{ .ID }})" class="action-btn text-[var(--gold)]">hide</button>
   </h3>
   <div class="meta">{{ .Published.Format "Jan 02, 2006 3:04 PM" }}</div>
   {{ if and .Description (not (hasCommentsOnly .Description)) }}
@@ -45,6 +45,7 @@ async function markAsUnread(id) {
 
 async function hideArticle(id) {
   await fetch(`/articles/${id}/hidden`, { method: 'POST' });
+  await fetch(`/articles/${id}/unsave`, { method: 'POST' });
   window.location.reload();
 }
 

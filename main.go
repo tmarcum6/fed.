@@ -38,7 +38,7 @@ func indexHandler(w http.ResponseWriter, r *http.Request) {
 	unreadOnly := r.URL.Query().Get("unread") == "true"
 	hiddenOnly := r.URL.Query().Get("hidden") == "true"
 	feeds, _ := db.GetAllFeeds()
-	articles, _ := db.GetArticles("", unreadOnly, hiddenOnly)
+	articles, _ := db.GetArticles("", unreadOnly, hiddenOnly, false)
 
 	templates.Render(w, "index.html", PageData{
 		Feeds:      feeds,
@@ -52,7 +52,7 @@ func feedHandler(w http.ResponseWriter, r *http.Request) {
 	feedID := chi.URLParam(r, "id")
 	unreadOnly := r.URL.Query().Get("unread") == "true"
 	feeds, _ := db.GetAllFeeds()
-	articles, _ := db.GetArticles(feedID, unreadOnly, false)
+	articles, _ := db.GetArticles(feedID, unreadOnly, false, false)
 
 	var current *models.Feed
 	for _, f := range feeds {
@@ -67,6 +67,16 @@ func feedHandler(w http.ResponseWriter, r *http.Request) {
 		Articles:   articles,
 		Feed:       current,
 		UnreadOnly: unreadOnly,
+	})
+}
+
+func savedHandler(w http.ResponseWriter, r *http.Request) {
+	feeds, _ := db.GetAllFeeds()
+	articles, _ := db.GetArticles("", false, false, true)
+
+	templates.Render(w, "saved.html", PageData{
+		Feeds:    feeds,
+		Articles: articles,
 	})
 }
 
@@ -208,8 +218,6 @@ func deleteFeedHandler(w http.ResponseWriter, r *http.Request) {
 	id := chi.URLParam(r, "id")
 	feedID, _ := strconv.Atoi(id)
 
-	log.Printf("DELETE feed ID: %d", feedID)
-
 	db.DeleteArticlesByFeed(feedID)
 	db.DeleteFeedByID(feedID)
 
@@ -260,6 +268,48 @@ func markUnreadHandler(w http.ResponseWriter, r *http.Request) {
 	w.WriteHeader(http.StatusNoContent)
 }
 
+func saveArticleHandler(w http.ResponseWriter, r *http.Request) {
+	id := chi.URLParam(r, "id")
+	articleID, _ := strconv.Atoi(id)
+
+	if err := db.SaveArticle(articleID); err != nil {
+		http.Error(w, "failed to save article", http.StatusInternalServerError)
+		return
+	}
+	w.WriteHeader(http.StatusNoContent)
+}
+
+func unsaveArticleHandler(w http.ResponseWriter, r *http.Request) {
+	id := chi.URLParam(r, "id")
+	articleID, _ := strconv.Atoi(id)
+
+	if err := db.UnsaveArticle(articleID); err != nil {
+		http.Error(w, "failed to unsave article", http.StatusInternalServerError)
+		return
+	}
+	w.WriteHeader(http.StatusNoContent)
+}
+
+func exportFeedsHandler(w http.ResponseWriter, r *http.Request) {
+	feeds, err := db.GetAllFeeds()
+	if err != nil {
+		http.Error(w, "failed to get feeds", http.StatusInternalServerError)
+		return
+	}
+
+	w.Header().Set("Content-Type", "text/csv")
+	w.Header().Set("Content-Disposition", "attachment; filename=feeds.csv")
+
+	for _, feed := range feeds {
+		w.Write([]byte(feed.URL + "\n"))
+	}
+}
+
+func backupHandler(w http.ResponseWriter, r *http.Request) {
+	w.Header().Set("Content-Disposition", "attachment; filename=fed.db")
+	http.ServeFile(w, r, "./rss.db")
+}
+
 func main() {
 	db.Init("./rss.db")
 	templates.Load()
@@ -267,18 +317,23 @@ func main() {
 
 	r := chi.NewRouter()
 	r.Get("/", indexHandler)
+	r.Get("/saved", savedHandler)
 	r.Get("/feeds", feedsHandler)
 	r.Post("/feeds", addFeedHandler)
 	r.Post("/feeds/import", handlers.ImportFeedsCSVHandler)
+	r.Get("/api/export-feeds", exportFeedsHandler)
 	r.Get("/feeds/discover", handlers.DiscoverFeedsHandler)
 	r.Post("/feeds/from-discovery", handlers.AddFeedFromDiscoveryHandler)
 	r.Post("/feeds/{id}/refresh", refreshFeedHandler)
 	r.Put("/feeds/{id}", updateFeedHandler)
+	r.Get("/backup", backupHandler)
 	r.Get("/feeds/{id}", feedHandler)
 	r.Post("/articles/{id}/read", markReadHandler)
 	r.Post("/articles/{id}/unread", markUnreadHandler)
 	r.Post("/articles/{id}/hidden", markHiddenHandler)
 	r.Post("/articles/{id}/unhide", unhideArticleHandler)
+	r.Post("/articles/{id}/save", saveArticleHandler)
+	r.Post("/articles/{id}/unsave", unsaveArticleHandler)
 	r.Delete("/feeds/{id}", deleteFeedHandler)
 
 	log.Println("Listening on :8080")

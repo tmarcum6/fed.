@@ -41,10 +41,13 @@ func createTables() {
 		    published   DATETIME,
 		    read        BOOLEAN DEFAULT 0,
 		    hidden      BOOLEAN DEFAULT 0,
+		    saved       BOOLEAN DEFAULT 0,
 		    FOREIGN KEY (feed_id) REFERENCES feeds(id)
 		);
 	`)
 	if err != nil {
 		log.Fatal("failed to create tables:", err)
 	}
+
+	DB.Exec(`ALTER TABLE articles ADD COLUMN saved BOOLEAN DEFAULT 0`)
 }

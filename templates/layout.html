@@ -1,12 +1,49 @@
 <!doctype html>
-<html lang="en">
+<html lang="en" data-theme="dark">
   <head>
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <title>fed.</title>
-    <link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><text y='.9em' font-size='90'>🍜</text></svg>">
+    <link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><text y='.9em' font-size='90'>&#x1F35C;</text></svg>">
     <script src="https://cdn.tailwindcss.com"></script>
     <style>
+      :root {
+        --bg-base: #191724;
+        --bg-surface: #1f1d2b;
+        --bg-overlay: #262433;
+        --bg-muted: #2a2840;
+        --text: #e0def4;
+        --text-muted: #555169;
+        --text-subtle: #797593;
+        --accent: #9d71cd;
+        --text: #e0def4;
+        --love: #eb6f92;
+        --gold: #f6c177;
+        --foam: #9ccfd8;
+        --iris: #9d71cd;
+        --highlight-highlight: rgba(157, 113, 205, 0.15);
+        --highlight-shine: rgba(255, 255, 255, 0.03);
+        --border: #403d52;
+      }
+
+      [data-theme="light"] {
+        --bg-base: #faf4ed;
+        --bg-surface: #fffaf3;
+        --bg-overlay: #f2ece4;
+        --bg-muted: #e8dfd5;
+        --text: #575279;
+        --text-muted: #9891a5;
+        --text-subtle: #6e6a97;
+        --accent: #9d71cd;
+        --love: #b4637a;
+        --gold: #d6727a;
+        --foam: #c4a35a;
+        --iris: #9d71cd;
+        --highlight-highlight: rgba(157, 113, 205, 0.12);
+        --highlight-shine: rgba(255, 255, 255, 0.5);
+        --border: #d4cfcd;
+      }
+
       * {
         box-sizing: border-box;
         margin: 0;
@@ -16,25 +53,27 @@
         font-family: sans-serif;
         display: flex;
         height: 100vh;
+        background: var(--bg-base);
+        color: var(--text);
       }
 
       .sidebar-link {
         display: block;
         padding: 0.4rem 0.5rem;
-        color: #cdd6f4;
+        color: var(--text);
         text-decoration: none;
         border-radius: 4px;
       }
       .sidebar-link:hover {
-        background: #313244;
+        background: var(--bg-muted);
       }
 
       .article {
-        border-bottom: 1px solid #313244;
+        border-bottom: 1px solid var(--border);
         padding: 1rem 0;
       }
       .article h3 a {
-        color: #89dceb;
+        color: var(--iris);
         text-decoration: none;
       }
       .article h3 a:hover {
@@ -42,25 +81,25 @@
       }
       .article .meta {
         font-size: 0.8rem;
-        color: #6c7086;
+        color: var(--text-muted);
         margin-top: 0.3rem;
       }
       .article p {
         margin-top: 0.5rem;
         font-size: 0.9rem;
-        color: #a6adc8;
+        color: var(--text-subtle);
       }
       .article.read h3 a {
-        color: #6c7086;
+        color: var(--text-muted);
       }
       .feed-card {
-        background: #1e1e2e;
+        background: var(--bg-surface);
         border-radius: 0.5rem;
         padding: 1rem;
         margin-bottom: 0.75rem;
       }
       .feed-card:hover {
-        background: #262637;
+        background: var(--bg-overlay);
       }
       .action-form {
         display: inline;
@@ -81,19 +120,25 @@
       .action-btn:hover {
         text-decoration: underline;
       }
+      .star-btn {
+        color: var(--text-muted);
+      }
+      .star-btn.saved {
+        color: var(--gold);
+      }
       .discovery-item {
-        background: #313244;
+        background: var(--bg-muted);
         border-radius: 4px;
         padding: 0.75rem;
         margin-bottom: 0.5rem;
         cursor: pointer;
       }
       .discovery-item:hover {
-        background: #45475a;
+        background: var(--bg-overlay);
       }
       .discovery-item.selected {
-        background: #89b4fa;
-        color: #1e1e2e;
+        background: var(--accent);
+        color: var(--bg-base);
       }
       .discovery-item input[type="radio"] {
         margin-right: 0.5rem;
@@ -101,61 +146,66 @@
     </style>
   </head>
   <body>
-    <div id="sidebar" class="w-64 bg-[#1e1e2e] text-[#cdd6f4] p-4 overflow-y-auto flex-shrink-0 flex flex-col">
-      <h2 class="text-sm mb-4 text-[#89b4fa]">🍜 fed.</h2>
+    <div id="sidebar" class="w-64 bg-[var(--bg-surface)] text-[var(--text)] p-4 overflow-y-auto flex-shrink-0 flex flex-col">
+      <div class="flex items-center justify-between mb-4">
+        <h2 class="text-sm text-[var(--accent)]">&#x1F35C; fed.</h2>
+        <button type="button" onclick="toggleTheme()" class="action-btn text-sm" title="Toggle theme">
+          &#x2600;
+        </button>
+      </div>
       <form method="POST" action="/feeds" class="flex gap-2 mb-2">
-        <input type="text" name="url" placeholder="Feed URL..." required class="flex-1 p-2 rounded text-sm bg-[#181825] border-none" />
-        <button type="submit" class="px-3 py-2 bg-[#89b4fa] rounded border-none cursor-pointer">+</button>
+        <input type="text" name="url" placeholder="Feed URL..." required class="flex-1 p-2 rounded text-sm bg-[var(--bg-base)] border-none" />
+        <button type="submit" class="px-3 py-2 bg-[var(--accent)] rounded border-none cursor-pointer">+</button>
       </form>
-      <button type="button" onclick="openDiscoverModal()" class="w-full text-left px-2 py-1 text-sm text-[#a6adc8] hover:text-[#cdd6f4] hover:bg-[#313244] rounded mb-4">
-        🔍 Discover feeds on a website
+      <button type="button" onclick="openDiscoverModal()" class="w-full text-left px-2 py-1 text-sm text-[var(--text-subtle)] hover:text-[var(--text)] hover:bg-[var(--bg-muted)] rounded mb-4">
+        &#x1F50D; Discover feeds on a website
       </button>
       <nav class="flex-1">
         <a href="/" class="sidebar-link">All Articles</a>
-        <a href="/?unread=true" class="sidebar-link">Unread Only</a>
         <a href="/?hidden=true" class="sidebar-link">Hidden</a>
+        <a href="/saved" class="sidebar-link">&#x2B50; Saved</a>
         <a href="/feeds" class="sidebar-link">Manage Feeds</a>
-        <hr class="border-[#313244] my-2" />
+        <hr class="border-[var(--border)] my-2" />
         {{ range .Feeds }}
         <a href="/feeds/{{ .ID }}" class="sidebar-link">{{ .Title }}</a>
         {{ end }}
       </nav>
     </div>
 
-    <div id="main" class="flex-1 p-8 overflow-y-auto bg-[#181825] text-[#cdd6f4]">{{ block "content" . }}{{ end }}</div>
+    <div id="main" class="flex-1 p-8 overflow-y-auto bg-[var(--bg-base)] text-[var(--text)]">{{ block "content" . }}{{ end }}</div>
 
     <div id="discover-modal" class="fixed inset-0 bg-black/50 hidden items-center justify-center z-50">
-      <div class="bg-[#1e1e2e] rounded-lg p-6 w-full max-w-lg mx-4 max-h-[80vh] flex flex-col">
-        <h2 class="text-lg text-[#cba6f7] mb-4">Discover RSS Feeds</h2>
+      <div class="bg-[var(--bg-surface)] rounded-lg p-6 w-full max-w-lg mx-4 max-h-[80vh] flex flex-col">
+        <h2 class="text-lg text-[var(--accent)] mb-4">Discover RSS Feeds</h2>
         <div class="flex gap-2 mb-4">
-          <input type="url" id="discover-url" placeholder="https://example.com" required class="flex-1 p-2 rounded bg-[#181825] border border-[#313244] text-[#cdd6f4]" />
-          <button type="button" onclick="searchFeeds()" class="px-4 py-2 bg-[#89b4fa] text-[#1e1e2e] rounded hover:bg-[#89b4fa/80]">Search</button>
+          <input type="url" id="discover-url" placeholder="https://example.com" required class="flex-1 p-2 rounded bg-[var(--bg-base)] border border-[var(--border)] text-[var(--text)]" />
+          <button type="button" onclick="searchFeeds()" class="px-4 py-2 bg-[var(--accent)] rounded hover:opacity-80">Search</button>
         </div>
         <div id="discover-results" class="flex-1 overflow-y-auto mb-4">
-          <p class="text-[#6c7086] text-sm">Enter a website URL to discover available RSS/Atom feeds.</p>
+          <p class="text-[var(--text-muted)] text-sm">Enter a website URL to discover available RSS/Atom feeds.</p>
         </div>
         <div class="flex justify-end gap-2">
-          <button type="button" onclick="closeDiscoverModal()" class="px-4 py-2 bg-[#313244] text-[#cdd6f4] rounded hover:bg-[#45475a]">Close</button>
-          <button type="button" onclick="addSelectedFeed()" class="px-4 py-2 bg-[#a6e3a1] text-[#1e1e2e] rounded hover:bg-[#a6e3a1/80]">Add Selected</button>
+          <button type="button" onclick="closeDiscoverModal()" class="px-4 py-2 bg-[var(--bg-muted)] rounded hover:opacity-80">Close</button>
+          <button type="button" onclick="addSelectedFeed()" class="px-4 py-2 bg-[var(--foam)] rounded hover:opacity-80">Add Selected</button>
         </div>
       </div>
     </div>
 
     <div id="edit-modal" class="fixed inset-0 bg-black/50 hidden items-center justify-center z-50">
-      <div class="bg-[#1e1e2e] rounded-lg p-6 w-full max-w-md mx-4">
-        <h2 class="text-lg text-[#cba6f7] mb-4">Edit Feed</h2>
+      <div class="bg-[var(--bg-surface)] rounded-lg p-6 w-full max-w-md mx-4">
+        <h2 class="text-lg text-[var(--accent)] mb-4">Edit Feed</h2>
         <form id="edit-form" onsubmit="submitEdit(event)">
           <div class="mb-4">
-            <label class="block text-[#6c7086] text-sm mb-1">Title</label>
-            <input type="text" id="edit-title" class="w-full p-2 rounded bg-[#181825] border border-[#313244] text-[#cdd6f4]" />
+            <label class="block text-[var(--text-muted)] text-sm mb-1">Title</label>
+            <input type="text" id="edit-title" class="w-full p-2 rounded bg-[var(--bg-base)] border border-[var(--border)] text-[var(--text)]" />
           </div>
           <div class="mb-4">
-            <label class="block text-[#6c7086] text-sm mb-1">URL</label>
-            <input type="url" id="edit-url" required class="w-full p-2 rounded bg-[#181825] border border-[#313244] text-[#cdd6f4]" />
+            <label class="block text-[var(--text-muted)] text-sm mb-1">URL</label>
+            <input type="url" id="edit-url" required class="w-full p-2 rounded bg-[var(--bg-base)] border border-[var(--border)] text-[var(--text)]" />
           </div>
           <div class="flex justify-end gap-2">
-            <button type="button" onclick="closeEditModal()" class="px-4 py-2 bg-[#313244] text-[#cdd6f4] rounded hover:bg-[#45475a]">Cancel</button>
-            <button type="submit" class="px-4 py-2 bg-[#a6e3a1] text-[#1e1e2e] rounded hover:bg-[#a6e3a1/80]">Save</button>
+            <button type="button" onclick="closeEditModal()" class="px-4 py-2 bg-[var(--bg-muted)] rounded hover:opacity-80">Cancel</button>
+            <button type="submit" class="px-4 py-2 bg-[var(--foam)] rounded hover:opacity-80">Save</button>
           </div>
         </form>
       </div>
@@ -164,6 +214,21 @@
     <script>
     let currentEditId = null;
     let discoveredFeeds = [];
+
+    function toggleTheme() {
+      const html = document.documentElement;
+      const current = html.getAttribute('data-theme');
+      const next = current === 'dark' ? 'light' : 'dark';
+      html.setAttribute('data-theme', next);
+      localStorage.setItem('theme', next);
+    }
+
+    (function() {
+      const saved = localStorage.getItem('theme');
+      if (saved) {
+        document.documentElement.setAttribute('data-theme', saved);
+      }
+    })();
 
     function openDiscoverModal() {
       document.getElementById('discover-modal').classList.remove('hidden');
@@ -174,7 +239,7 @@
     function closeDiscoverModal() {
       document.getElementById('discover-modal').classList.add('hidden');
       document.getElementById('discover-modal').classList.remove('flex');
-      document.getElementById('discover-results').innerHTML = '<p class="text-[#6c7086] text-sm">Enter a website URL to discover available RSS/Atom feeds.</p>';
+      document.getElementById('discover-results').innerHTML = '<p class="text-[var(--text-muted)] text-sm">Enter a website URL to discover available RSS/Atom feeds.</p>';
       document.getElementById('discover-url').value = '';
       discoveredFeeds = [];
     }
@@ -184,7 +249,7 @@
       if (!url) return;
       
       const resultsDiv = document.getElementById('discover-results');
-      resultsDiv.innerHTML = '<p class="text-[#6c7086] text-sm">Searching...</p>';
+      resultsDiv.innerHTML = '<p class="text-[var(--text-muted)] text-sm">Searching...</p>';
       
       try {
         const response = await fetch(`/feeds/discover?url=${encodeURIComponent(url)}`);
@@ -193,7 +258,7 @@
         discoveredFeeds = feeds;
         
         if (feeds.length === 0) {
-          resultsDiv.innerHTML = '<p class="text-[#6c7086] text-sm">No feeds found on this website.</p>';
+          resultsDiv.innerHTML = '<p class="text-[var(--text-muted)] text-sm">No feeds found on this website.</p>';
           return;
         }
         
@@ -203,13 +268,13 @@
               <input type="radio" name="feed" value="${i}" class="feed-radio" />
               <div>
                 <div class="font-medium">${escapeHtml(feed.title)}</div>
-                <div class="text-xs text-[#6c7086] truncate">${escapeHtml(feed.url)}</div>
+                <div class="text-xs text-[var(--text-muted)] truncate">${escapeHtml(feed.url)}</div>
               </div>
             </label>
           </div>
         `).join('');
       } catch (err) {
-        resultsDiv.innerHTML = `<p class="text-[#f38ba8] text-sm">Error: ${err.message}</p>`;
+        resultsDiv.innerHTML = `<p class="text-[var(--love)] text-sm">Error: ${err.message}</p>`;
       }
     }
 

@@ -18,4 +18,5 @@ type Article struct {
 	Published   time.Time
 	Read        bool
 	Hidden      bool
+	Saved       bool
 }

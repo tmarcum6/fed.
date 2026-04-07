@@ -1,9 +1,15 @@
 {{ define "content" }}
-<h1 class="text-xl mb-6 text-[#cba6f7]">
-  {{ if .UnreadOnly }}Unread Articles{{ else if .Hidden }}Hidden Articles{{ else }}All Articles{{ end }}
-</h1>
+<div class="flex items-center justify-between mb-6">
+  <h1 class="text-xl text-[var(--accent)]">
+    {{ if .Hidden }}Hidden Articles{{ else }}All Articles{{ end }}
+  </h1>
+  <a href="/?{{ if not .UnreadOnly }}unread=true{{ end }}" class="text-[var(--accent)] text-sm hover:underline">
+    {{ if .UnreadOnly }}Show all{{ else }}Show unread only{{ end }}
+  </a>
+</div>
+
 {{ if not .Articles }}
-<p class="text-[#6c7086]">No articles yet — add a feed to get started.</p>
+<p class="text-[var(--text-muted)]">No articles yet — add a feed to get started.</p>
 {{ end }}
 {{ range .Articles }}
 <div class="article {{ if .Read }}read{{ end }}" id="article-{{ .ID }}">
@@ -15,14 +21,15 @@
       class="rounded"
       onerror="this.style.display='none'"
     />
-    <a href="{{ .Link }}" target="_blank" class="text-[#89dceb]">{{ .Title }}</a>
+    <a href="{{ .Link }}" target="_blank" class="text-[var(--iris)]">{{ .Title }}</a>
+    <button type="button" onclick="toggleSave({{ .ID }}, {{ .Saved }})" class="action-btn star-btn {{ if .Saved }}saved{{ end }}">&#x2B50;</button>
     {{ if .Hidden }}
-    <button type="button" onclick="unhideArticle({{ .ID }})" class="action-btn text-[#fab387]">&#x21BA; unhide</button>
+    <button type="button" onclick="unhideArticle({{ .ID }})" class="action-btn text-[var(--gold)]">&#x21BA; unhide</button>
     {{ else if .Read }}
-    <button type="button" onclick="markAsUnread({{ .ID }})" class="action-btn text-[#6c7086]">&#x21BA; unread</button>
+    <button type="button" onclick="markAsUnread({{ .ID }})" class="action-btn text-[var(--text-muted)]">&#x21BA; unread</button>
     {{ else }}
-    <button type="button" onclick="markAsRead({{ .ID }})" class="action-btn text-[#a6e3a1]">&#x2713; read</button>
-    <button type="button" onclick="hideArticle({{ .ID }})" class="action-btn text-[#f9e2af]">hide</button>
+    <button type="button" onclick="markAsRead({{ .ID }})" class="action-btn text-[var(--foam)]">&#x2713; read</button>
+    <button type="button" onclick="hideArticle({{ .ID }})" class="action-btn text-[var(--gold)]">hide</button>
     {{ end }}
   </h3>
   <div class="meta">{{ .Published.Format "Jan 02, 2006 3:04 PM" }}</div>
@@ -50,6 +57,12 @@ async function hideArticle(id) {
 
 async function unhideArticle(id) {
   await fetch(`/articles/${id}/unhide`, { method: 'POST' });
+  window.location.reload();
+}
+
+async function toggleSave(id, isSaved) {
+  const url = isSaved ? `/articles/${id}/unsave` : `/articles/${id}/save`;
+  await fetch(url, { method: 'POST' });
   window.location.reload();
 }
 </script>
