@@ -4,6 +4,10 @@
 
 ---
 
+![Example](homepage_test.png)
+
+---
+
 ## Features
 
 - **Add any RSS or Atom feed** — via URL
